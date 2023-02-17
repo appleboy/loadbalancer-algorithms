@@ -7,7 +7,10 @@ import (
 	"sync/atomic"
 )
 
-var ErrServersEmpty = errors.New("server list is empty")
+var (
+	ErrServersEmpty   = errors.New("server list is empty")
+	ErrServerNotFound = errors.New("server not found")
+)
 
 type server struct {
 	url *url.URL
@@ -46,7 +49,15 @@ func (r *roundRobin) Add(urls ...*url.URL) error {
 }
 
 func (r *roundRobin) Remove(url *url.URL) error {
-	return nil
+	r.Lock()
+	for i, s := range r.servers {
+		if checkURL(url, s.url) {
+			r.servers = append(r.servers[:i], r.servers[i+1:]...)
+			return nil
+		}
+	}
+	r.Unlock()
+	return ErrServerNotFound
 }
 
 func New(urls ...*url.URL) (RoundRobin, error) {
@@ -64,4 +75,8 @@ func New(urls ...*url.URL) (RoundRobin, error) {
 	rb.count = len(rb.servers)
 
 	return rb, nil
+}
+
+func checkURL(a, b *url.URL) bool {
+	return a.Path == b.Path && a.Host == b.Host && a.Scheme == b.Scheme
 }
