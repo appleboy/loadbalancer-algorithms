@@ -71,3 +71,12 @@ func ExampleRoundRobin() {
 	// 192.168.2.13
 	// 192.168.1.10
 }
+
+func BenchmarkNext(b *testing.B) {
+	r, _ := New(servers...)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Next()
+	}
+}
