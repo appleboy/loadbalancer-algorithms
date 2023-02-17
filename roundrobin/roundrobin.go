@@ -23,20 +23,20 @@ type RoundRobin interface {
 	Servers() []*url.URL
 }
 
-type roundRobin struct {
+type roundrobin struct {
 	sync.Mutex
 	servers []*server
 	next    uint32
 	count   int
 }
 
-func (r *roundRobin) NextServer() *url.URL {
+func (r *roundrobin) NextServer() *url.URL {
 	index := atomic.AddUint32(&r.next, 1)
 	server := r.servers[int(index-1)%r.count]
 	return server.url
 }
 
-func (r *roundRobin) AddServers(urls ...*url.URL) error {
+func (r *roundrobin) AddServers(urls ...*url.URL) error {
 	if len(urls) == 0 {
 		return ErrServersEmpty
 	}
@@ -49,7 +49,7 @@ func (r *roundRobin) AddServers(urls ...*url.URL) error {
 	return nil
 }
 
-func (r *roundRobin) RemoveServer(url *url.URL) error {
+func (r *roundrobin) RemoveServer(url *url.URL) error {
 	r.Lock()
 	defer r.Unlock()
 	for i, s := range r.servers {
@@ -61,7 +61,7 @@ func (r *roundRobin) RemoveServer(url *url.URL) error {
 	return ErrServerNotFound
 }
 
-func (r *roundRobin) Servers() []*url.URL {
+func (r *roundrobin) Servers() []*url.URL {
 	r.Lock()
 	urls := make([]*url.URL, len(r.servers))
 	for i, s := range r.servers {
@@ -77,7 +77,7 @@ func New(urls ...*url.URL) (RoundRobin, error) {
 		return nil, ErrServersEmpty
 	}
 
-	rb := &roundRobin{
+	rb := &roundrobin{
 		servers: []*server{},
 	}
 
