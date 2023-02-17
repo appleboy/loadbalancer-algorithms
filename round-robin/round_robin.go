@@ -3,6 +3,7 @@ package round_robin
 import (
 	"errors"
 	"net/url"
+	"sync/atomic"
 )
 
 var ErrServersEmpty = errors.New("server list is empty")
@@ -20,7 +21,8 @@ type roundRobin struct {
 }
 
 func (r *roundRobin) Next() *url.URL {
-	return nil
+	index := atomic.AddUint32(&r.next, 1)
+	return r.urls[int(index-1)%r.count]
 }
 
 func (r *roundRobin) Add(u *url.URL) error {
