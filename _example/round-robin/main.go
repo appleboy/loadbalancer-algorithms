@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	roundrobin "github.com/appleboy/loadbalancer-algorithms/round-robin"
+	"github.com/appleboy/loadbalancer-algorithms/roundrobin"
 )
 
 func main() {
