@@ -57,6 +57,19 @@ func TestRemove(t *testing.T) {
 	}
 }
 
+func TestGetServers(t *testing.T) {
+	r, _ := New(servers...)
+	r.RemoveServer(&url.URL{
+		Host: "192.168.1.13",
+	})
+
+	for _, s := range r.Servers() {
+		if r.NextServer().Host != s.Host {
+			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
+		}
+	}
+}
+
 func ExampleRoundRobin() {
 	r, _ := New(servers...)
 

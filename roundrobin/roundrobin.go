@@ -20,6 +20,7 @@ type RoundRobin interface {
 	NextServer() *url.URL
 	AddServers(...*url.URL) error
 	RemoveServer(*url.URL) error
+	Servers() []*url.URL
 }
 
 type roundRobin struct {
@@ -50,14 +51,25 @@ func (r *roundRobin) AddServers(urls ...*url.URL) error {
 
 func (r *roundRobin) RemoveServer(url *url.URL) error {
 	r.Lock()
+	defer r.Unlock()
 	for i, s := range r.servers {
 		if checkURL(url, s.url) {
 			r.servers = append(r.servers[:i], r.servers[i+1:]...)
 			return nil
 		}
 	}
-	r.Unlock()
 	return ErrServerNotFound
+}
+
+func (r *roundRobin) Servers() []*url.URL {
+	r.Lock()
+	urls := make([]*url.URL, len(r.servers))
+	for i, s := range r.servers {
+		urls[i] = s.url
+	}
+	r.Unlock()
+
+	return urls
 }
 
 func New(urls ...*url.URL) (RoundRobin, error) {
