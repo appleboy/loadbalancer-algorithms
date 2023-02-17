@@ -24,20 +24,20 @@ func TestNext(t *testing.T) {
 	r, _ := New(servers...)
 
 	for _, s := range servers {
-		if r.Next().Host != s.Host {
-			t.Fatalf("Expected %s, but got %s", s.Host, r.Next().Host)
+		if r.NextServer().Host != s.Host {
+			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
 		}
 	}
 }
 
 func TestAdd(t *testing.T) {
 	r, _ := New(servers...)
-	r.Add(addServers...)
+	r.AddServers(addServers...)
 	newServers := append(servers, addServers...)
 
 	for _, s := range newServers {
-		if r.Next().Host != s.Host {
-			t.Fatalf("Expected %s, but got %s", s.Host, r.Next().Host)
+		if r.NextServer().Host != s.Host {
+			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
 		}
 	}
 }
@@ -46,13 +46,13 @@ func TestRemove(t *testing.T) {
 	expectServers := servers[:len(servers)-1]
 
 	r, _ := New(servers...)
-	r.Remove(&url.URL{
+	r.RemoveServer(&url.URL{
 		Host: "192.168.1.13",
 	})
 
 	for _, s := range expectServers {
-		if r.Next().Host != s.Host {
-			t.Fatalf("Expected %s, but got %s", s.Host, r.Next().Host)
+		if r.NextServer().Host != s.Host {
+			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
 		}
 	}
 }
@@ -60,19 +60,19 @@ func TestRemove(t *testing.T) {
 func ExampleRoundRobin() {
 	r, _ := New(servers...)
 
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
 	fmt.Println()
 
-	r.Add(addServers...)
+	r.AddServers(addServers...)
 
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
-	fmt.Println(r.Next().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
 
 	// Output:
 	// 192.168.1.10
@@ -92,6 +92,6 @@ func BenchmarkNext(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r.Next()
+		r.NextServer()
 	}
 }

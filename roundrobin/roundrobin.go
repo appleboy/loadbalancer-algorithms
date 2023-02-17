@@ -17,9 +17,9 @@ type server struct {
 }
 
 type RoundRobin interface {
-	Next() *url.URL
-	Add(...*url.URL) error
-	Remove(*url.URL) error
+	NextServer() *url.URL
+	AddServers(...*url.URL) error
+	RemoveServer(*url.URL) error
 }
 
 type roundRobin struct {
@@ -29,13 +29,13 @@ type roundRobin struct {
 	count   int
 }
 
-func (r *roundRobin) Next() *url.URL {
+func (r *roundRobin) NextServer() *url.URL {
 	index := atomic.AddUint32(&r.next, 1)
 	server := r.servers[int(index-1)%r.count]
 	return server.url
 }
 
-func (r *roundRobin) Add(urls ...*url.URL) error {
+func (r *roundRobin) AddServers(urls ...*url.URL) error {
 	if len(urls) == 0 {
 		return ErrServersEmpty
 	}
@@ -48,7 +48,7 @@ func (r *roundRobin) Add(urls ...*url.URL) error {
 	return nil
 }
 
-func (r *roundRobin) Remove(url *url.URL) error {
+func (r *roundRobin) RemoveServer(url *url.URL) error {
 	r.Lock()
 	for i, s := range r.servers {
 		if checkURL(url, s.url) {
