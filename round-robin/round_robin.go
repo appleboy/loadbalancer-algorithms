@@ -3,6 +3,7 @@ package round_robin
 import (
 	"errors"
 	"net/url"
+	"sync"
 	"sync/atomic"
 )
 
@@ -10,11 +11,12 @@ var ErrServersEmpty = errors.New("server list is empty")
 
 type RoundRobin interface {
 	Next() *url.URL
-	Add(*url.URL) error
-	Remove(*url.URL) error
+	Add(...*url.URL) error
+	Remove(...*url.URL) error
 }
 
 type roundRobin struct {
+	sync.Mutex
 	urls  []*url.URL
 	next  uint32
 	count int
@@ -25,11 +27,18 @@ func (r *roundRobin) Next() *url.URL {
 	return r.urls[int(index-1)%r.count]
 }
 
-func (r *roundRobin) Add(u *url.URL) error {
+func (r *roundRobin) Add(urls ...*url.URL) error {
+	if len(urls) == 0 {
+		return ErrServersEmpty
+	}
+	r.Lock()
+	r.urls = append(r.urls, urls...)
+	r.count = len(r.urls)
+	r.Unlock()
 	return nil
 }
 
-func (r *roundRobin) Remove(u *url.URL) error {
+func (r *roundRobin) Remove(urls ...*url.URL) error {
 	return nil
 }
 
