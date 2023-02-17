@@ -1,6 +1,7 @@
 package round_robin
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 )
@@ -39,4 +40,34 @@ func TestAdd(t *testing.T) {
 			t.Fatalf("Expected %s, but got %s", s.Host, r.Next().Host)
 		}
 	}
+}
+
+func ExampleRoundRobin() {
+	r, _ := New(servers...)
+
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println()
+
+	r.Add(addServers...)
+
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+	fmt.Println(r.Next().Host)
+
+	// Output:
+	// 192.168.1.10
+	// 192.168.1.11
+	// 192.168.1.12
+	// 192.168.1.13
+	//
+	// 192.168.2.10
+	// 192.168.2.11
+	// 192.168.2.12
+	// 192.168.2.13
+	// 192.168.1.10
 }
