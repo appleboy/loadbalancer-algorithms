@@ -9,22 +9,27 @@ import (
 
 var ErrServersEmpty = errors.New("server list is empty")
 
+type server struct {
+	url *url.URL
+}
+
 type RoundRobin interface {
 	Next() *url.URL
 	Add(...*url.URL) error
-	Remove(...*url.URL) error
+	Remove(*url.URL) error
 }
 
 type roundRobin struct {
 	sync.Mutex
-	urls  []*url.URL
-	next  uint32
-	count int
+	servers []*server
+	next    uint32
+	count   int
 }
 
 func (r *roundRobin) Next() *url.URL {
 	index := atomic.AddUint32(&r.next, 1)
-	return r.urls[int(index-1)%r.count]
+	server := r.servers[int(index-1)%r.count]
+	return server.url
 }
 
 func (r *roundRobin) Add(urls ...*url.URL) error {
@@ -32,13 +37,15 @@ func (r *roundRobin) Add(urls ...*url.URL) error {
 		return ErrServersEmpty
 	}
 	r.Lock()
-	r.urls = append(r.urls, urls...)
-	r.count = len(r.urls)
+	for _, url := range urls {
+		r.servers = append(r.servers, &server{url: url})
+	}
+	r.count = len(r.servers)
 	r.Unlock()
 	return nil
 }
 
-func (r *roundRobin) Remove(urls ...*url.URL) error {
+func (r *roundRobin) Remove(url *url.URL) error {
 	return nil
 }
 
@@ -47,8 +54,14 @@ func New(urls ...*url.URL) (RoundRobin, error) {
 		return nil, ErrServersEmpty
 	}
 
-	return &roundRobin{
-		urls:  urls,
-		count: len(urls),
-	}, nil
+	rb := &roundRobin{
+		servers: []*server{},
+	}
+
+	for _, url := range urls {
+		rb.servers = append(rb.servers, &server{url: url})
+	}
+	rb.count = len(rb.servers)
+
+	return rb, nil
 }
