@@ -32,7 +32,7 @@ func TestNext(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	r, _ := New(servers...)
-	r.AddServers(addServers...)
+	_ = r.AddServers(addServers...)
 	newServers := append(servers, addServers...)
 
 	for _, s := range newServers {
@@ -46,7 +46,7 @@ func TestRemove(t *testing.T) {
 	expectServers := servers[:len(servers)-1]
 
 	r, _ := New(servers...)
-	r.RemoveServer(&url.URL{
+	_ = r.RemoveServer(&url.URL{
 		Host: "192.168.1.13",
 	})
 
@@ -59,7 +59,7 @@ func TestRemove(t *testing.T) {
 
 func TestGetServers(t *testing.T) {
 	r, _ := New(servers...)
-	r.RemoveServer(&url.URL{
+	_ = r.RemoveServer(&url.URL{
 		Host: "192.168.1.13",
 	})
 
@@ -79,7 +79,7 @@ func ExampleRoundRobin() {
 	fmt.Println(r.NextServer().Host)
 	fmt.Println()
 
-	r.AddServers(addServers...)
+	_ = r.AddServers(addServers...)
 
 	fmt.Println(r.NextServer().Host)
 	fmt.Println(r.NextServer().Host)
