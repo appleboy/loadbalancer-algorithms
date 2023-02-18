@@ -35,11 +35,11 @@ func main() {
     panic(err)
   }
 
-  fmt.Println(rb.Next().Host)
-  fmt.Println(rb.Next().Host)
-  fmt.Println(rb.Next().Host)
-  fmt.Println(rb.Next().Host)
-  fmt.Println(rb.Next().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
 }
 ```
 
