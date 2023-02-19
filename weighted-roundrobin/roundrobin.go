@@ -135,6 +135,8 @@ func (r *roundrobin) RemoveAll() {
 	r.count = 0
 	r.cw = 0
 	r.index = -1
+	r.gcd = 0
+	r.maxWeigt = 0
 }
 
 func New() (RoundRobin, error) {
