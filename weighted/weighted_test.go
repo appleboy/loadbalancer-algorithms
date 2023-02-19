@@ -1,4 +1,4 @@
-package roundrobin
+package weighted
 
 import (
 	"fmt"
