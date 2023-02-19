@@ -86,6 +86,7 @@ func New(urls ...*url.URL) (RoundRobin, error) {
 
 	rb := &roundrobin{
 		servers: []*server{},
+		count:   0,
 	}
 
 	for _, url := range urls {
