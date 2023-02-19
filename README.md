@@ -12,7 +12,7 @@ The round robin algorithm is simple and easy to implement, and it ensures fairne
 
 ![roundrobin](./images/roundrobin.png)
 
-### Example
+See the following example.
 
 ```go
 package main
@@ -53,4 +53,76 @@ output as following
 192.168.1.12
 192.168.1.13
 192.168.1.10
+```
+
+## Weighted Round Robin
+
+In the context of load balancing, weighted round-robin is a scheduling algorithm used to distribute incoming traffic across a group of servers in a data center or network. In this algorithm, each server is assigned a "weight" value, which is a relative measure of its capacity or processing power.
+
+When a request comes in, the load balancer cycles through the available servers in a circular order, processing each request on a selected server for a fixed amount of time before moving on to the next server in the cycle. The number of requests that are sent to each server is proportional to its weight value. For example, if one server has a weight of 2 and another has a weight of 1, the first server will receive twice as many requests as the second server.
+
+Weighted round-robin load balancing can be useful when servers have different processing capabilities or when some servers need to handle a larger share of the incoming traffic. By assigning weights to each server, the load balancer can distribute requests in a way that optimizes the use of available resources and ensures that no single server is overwhelmed by traffic.
+
+reference to [Weighted Round-Robin Scheduling](http://kb.linuxvirtualserver.org/wiki/Weighted_Round-Robin_Scheduling).
+
+For example, the real servers, A, B and C, have the weights, 4, 3, 2 respectively, a scheduling sequence will be AABABCABC in a scheduling period.
+
+See the following example.
+
+```go
+package main
+
+import (
+  "fmt"
+  "net/url"
+
+  "github.com/appleboy/loadbalancer-algorithms/weighted"
+)
+
+type server struct {
+  url    *url.URL
+  weight int
+}
+
+func main() {
+  servers := []*server{
+    {
+      url: &url.URL{
+        Host: "192.168.1.10",
+      },
+      weight: 4,
+    },
+    {
+      url: &url.URL{
+        Host: "192.168.1.11",
+      },
+      weight: 3,
+    },
+    {
+      url: &url.URL{
+        Host: "192.168.1.12",
+      },
+      weight: 2,
+    },
+  }
+
+  rb, err := weighted.New()
+  if err != nil {
+    panic(err)
+  }
+
+  for _, v := range servers {
+    _ = rb.AddServer(v.url, v.weight)
+  }
+
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+  fmt.Println(rb.NextServer().Host)
+}
 ```
