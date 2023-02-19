@@ -21,6 +21,7 @@ type RoundRobin interface {
 	AddServers(...*url.URL) error
 	RemoveServer(*url.URL) error
 	Servers() []*url.URL
+	RemoveAll()
 }
 
 type roundrobin struct {
@@ -70,6 +71,12 @@ func (r *roundrobin) Servers() []*url.URL {
 	r.Unlock()
 
 	return urls
+}
+
+func (r *roundrobin) RemoveAll() {
+	r.servers = r.servers[:0]
+	r.count = 0
+	atomic.StoreUint32(&r.next, 0)
 }
 
 func New(urls ...*url.URL) (RoundRobin, error) {

@@ -70,6 +70,15 @@ func TestGetServers(t *testing.T) {
 	}
 }
 
+func TestRemoveAll(t *testing.T) {
+	r, _ := New(servers...)
+	r.RemoveAll()
+
+	if len(r.Servers()) != 0 {
+		t.Fatalf("Expected zero, but got %d", len(r.Servers()))
+	}
+}
+
 func ExampleRoundRobin() {
 	r, _ := New(servers...)
 
