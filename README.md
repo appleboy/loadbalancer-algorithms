@@ -65,7 +65,7 @@ Weighted round-robin load balancing can be useful when servers have different pr
 
 reference to [Weighted Round-Robin Scheduling](http://kb.linuxvirtualserver.org/wiki/Weighted_Round-Robin_Scheduling).
 
-For example, the real servers, A, B and C, have the weights, 4, 3, 2 respectively, a scheduling sequence will be AABABCABC in a scheduling period.
+For example, the real servers, **A, B and C**, have the weights, **4, 3, 2** respectively, a scheduling sequence will be `AABABCABC` in a scheduling period.
 
 See the following example.
 
