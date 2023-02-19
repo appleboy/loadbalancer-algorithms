@@ -22,6 +22,8 @@ type RoundRobin interface {
 	RemoveServer(*url.URL) error
 	Servers() []*url.URL
 	RemoveAll()
+	// Reset resets all current weights.
+	Reset()
 }
 
 // Weighted Round Robin
@@ -137,6 +139,12 @@ func (r *roundrobin) RemoveAll() {
 	r.index = -1
 	r.gcd = 0
 	r.maxWeigt = 0
+}
+
+// Reset resets all current weights.
+func (r *roundrobin) Reset() {
+	r.index = -1
+	r.cw = 0
 }
 
 func New() (RoundRobin, error) {
