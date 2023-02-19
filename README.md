@@ -67,6 +67,8 @@ reference to [Weighted Round-Robin Scheduling](http://kb.linuxvirtualserver.org/
 
 For example, the real servers, **A, B and C**, have the weights, **4, 3, 2** respectively, a scheduling sequence will be `AABABCABC` in a scheduling period.
 
+![weight](./images/weight.png)
+
 See the following example.
 
 ```go
