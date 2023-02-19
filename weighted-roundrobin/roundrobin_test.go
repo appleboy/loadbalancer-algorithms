@@ -1,6 +1,7 @@
 package roundrobin
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 )
@@ -26,10 +27,38 @@ var servers = []*server{
 	},
 }
 
+func ExampleRoundRobin() {
+	r, _ := New()
+	for _, server := range servers {
+		_ = r.AddServer(server.url, server.weight)
+	}
+
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+	fmt.Println(r.NextServer().Host)
+
+	// Output:
+	// 192.168.1.10
+	// 192.168.1.10
+	// 192.168.1.11
+	// 192.168.1.10
+	// 192.168.1.11
+	// 192.168.1.12
+	// 192.168.1.10
+	// 192.168.1.11
+	// 192.168.1.12
+}
+
 func BenchmarkNext(b *testing.B) {
 	r, _ := New()
 	for _, server := range servers {
-		r.AddServer(server.url, server.weight)
+		_ = r.AddServer(server.url, server.weight)
 	}
 	b.ReportAllocs()
 	b.ResetTimer()
