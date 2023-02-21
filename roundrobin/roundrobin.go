@@ -32,6 +32,9 @@ type roundrobin struct {
 }
 
 func (r *roundrobin) NextServer() *url.URL {
+	if r.count == 0 {
+		return nil
+	}
 	index := atomic.AddUint32(&r.next, 1)
 	server := r.servers[int(index-1)%r.count]
 	return server.url
@@ -56,6 +59,7 @@ func (r *roundrobin) RemoveServer(url *url.URL) error {
 	for i, s := range r.servers {
 		if checkURL(url, s.url) {
 			r.servers = append(r.servers[:i], r.servers[i+1:]...)
+			r.count--
 			return nil
 		}
 	}

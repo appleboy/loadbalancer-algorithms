@@ -117,3 +117,32 @@ func BenchmarkNext(b *testing.B) {
 		r.NextServer()
 	}
 }
+
+func TestNext2(t *testing.T) {
+	sers := []*url.URL{
+		{Host: "192.168.1.1"},
+		{Host: "192.168.1.2"},
+	}
+	r, _ := New(sers...)
+	aa := r.NextServer()
+	t.Log(aa)
+	bb := r.NextServer()
+	t.Log(bb)
+	cc := r.NextServer()
+	t.Log(cc)
+	err := r.RemoveServer(&url.URL{Host: "192.168.1.1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dd := r.NextServer()
+	t.Logf("dd: %v", dd)
+	err = r.RemoveServer(&url.URL{Host: "192.168.1.2"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ee := r.NextServer()
+	if ee != nil {
+		t.Fatalf("want: nil, got: %v", ee)
+	}
+	t.Logf("ee: %v", ee)
+}
