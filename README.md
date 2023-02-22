@@ -2,7 +2,13 @@
 
 Load balancer Algorithms
 
-## Round Robin
+## Static load balancing algorithms
+
+* Round robin
+* Weighted round robin
+* IP hash
+
+### Round Robin
 
 Round robin is a scheduling algorithm used in computing systems to manage the allocation of resources among processes or tasks. It is a pre-emptive algorithm that assigns a fixed time slice, known as a time quantum, to each process in a cyclic manner.
 
@@ -55,7 +61,7 @@ output as following
 192.168.1.10
 ```
 
-## Weighted Round Robin
+### Weighted Round Robin
 
 In the context of load balancing, weighted round-robin is a scheduling algorithm used to distribute incoming traffic across a group of servers in a data center or network. In this algorithm, each server is assigned a "weight" value, which is a relative measure of its capacity or processing power.
 
