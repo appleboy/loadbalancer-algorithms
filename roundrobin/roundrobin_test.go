@@ -118,31 +118,38 @@ func BenchmarkNext(b *testing.B) {
 	}
 }
 
-func TestNext2(t *testing.T) {
+func TestRemoveServer(t *testing.T) {
 	sers := []*url.URL{
 		{Host: "192.168.1.1"},
 		{Host: "192.168.1.2"},
 	}
 	r, _ := New(sers...)
-	aa := r.NextServer()
-	t.Log(aa)
-	bb := r.NextServer()
-	t.Log(bb)
-	cc := r.NextServer()
-	t.Log(cc)
+	n := r.NextServer()
+	if n.Host != "192.168.1.1" {
+		t.Fatal("wrong host")
+	}
+	n = r.NextServer()
+	if n.Host != "192.168.1.2" {
+		t.Fatal("wrong host")
+	}
+	n = r.NextServer()
+	if n.Host != "192.168.1.1" {
+		t.Fatal("wrong host")
+	}
 	err := r.RemoveServer(&url.URL{Host: "192.168.1.1"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	dd := r.NextServer()
-	t.Logf("dd: %v", dd)
+	n = r.NextServer()
+	if n.Host != "192.168.1.2" {
+		t.Fatal("wrong host")
+	}
 	err = r.RemoveServer(&url.URL{Host: "192.168.1.2"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	ee := r.NextServer()
-	if ee != nil {
-		t.Fatalf("want: nil, got: %v", ee)
+	n = r.NextServer()
+	if n != nil {
+		t.Fatalf("want: nil, got: %v", n)
 	}
-	t.Logf("ee: %v", ee)
 }
