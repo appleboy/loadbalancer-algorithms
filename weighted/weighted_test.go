@@ -1,6 +1,7 @@
 package weighted
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"testing"
@@ -25,6 +26,30 @@ var servers = []*server{
 		},
 		weight: 2,
 	},
+}
+
+func TestRemoveServer(t *testing.T) {
+	r, _ := New()
+	for _, server := range servers {
+		_ = r.AddServer(server.url, server.weight)
+	}
+
+	err := r.RemoveServer(&url.URL{
+		Host: "192.168.1.100",
+	})
+
+	if !errors.Is(ErrServerNotFound, err) {
+		t.Fatal(err)
+	}
+
+	_ = r.RemoveServer(&url.URL{
+		Host: "192.168.1.10",
+	})
+
+	servs := r.Servers()
+	if len(servs) != len(servers)-1 {
+		t.Fatal("can't remove server")
+	}
 }
 
 func ExampleRoundRobin() {
