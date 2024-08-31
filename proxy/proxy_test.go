@@ -16,7 +16,7 @@ func TestProxy_ServeHTTP(t *testing.T) {
 
 	// Create a new proxy with the test server's URL
 	proxyURL, _ := url.Parse(ts.URL)
-	proxy := NewProxy(proxyURL)
+	proxy := NewProxy("foobar", proxyURL)
 
 	// Create a mock request
 	req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)

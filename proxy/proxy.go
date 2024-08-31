@@ -10,7 +10,7 @@ import (
 var value int32 = -1
 
 // NewProxy creates a new instance of Proxy with the specified address.
-func NewProxy(addr *url.URL) *Proxy {
+func NewProxy(name string, addr *url.URL) *Proxy {
 	return &Proxy{
 		proxy: httputil.NewSingleHostReverseProxy(addr),
 	}
@@ -18,6 +18,7 @@ func NewProxy(addr *url.URL) *Proxy {
 
 // Proxy represents a reverse proxy for load balancing algorithms.
 type Proxy struct {
+	name    string
 	proxy   *httputil.ReverseProxy
 	loading uint32
 }
@@ -38,4 +39,9 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // GetLoading returns the current loading of the proxy.
 func (p *Proxy) GetLoading() uint32 {
 	return atomic.LoadUint32(&p.loading)
+}
+
+// GetName returns the name of the proxy.
+func (p *Proxy) GetName() string {
+	return p.name
 }
