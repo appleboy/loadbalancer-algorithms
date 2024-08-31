@@ -7,6 +7,11 @@ import (
 	"sync/atomic"
 )
 
+// Example of a configuration file:
+// server s1 example01.com
+// server s2 example02.com
+// server s3 example03.com
+
 var value int32 = -1
 
 // NewProxy creates a new instance of Proxy with the specified address.
