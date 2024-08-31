@@ -15,13 +15,15 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v5
         with:
-          go-version: "^1"
+          go-version-file: "go.mod"
+          check-latest: true
+
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v1.60.1
           args: --verbose
   test:
     strategy:
