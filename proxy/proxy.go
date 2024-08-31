@@ -3,10 +3,18 @@ package proxy
 import (
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"sync/atomic"
 )
 
 var value int32 = -1
+
+// NewProxy creates a new instance of Proxy with the specified address.
+func NewProxy(addr *url.URL) *Proxy {
+	return &Proxy{
+		proxy: httputil.NewSingleHostReverseProxy(addr),
+	}
+}
 
 // Proxy represents a reverse proxy for load balancing algorithms.
 type Proxy struct {
