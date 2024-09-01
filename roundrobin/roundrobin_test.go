@@ -57,3 +57,18 @@ func TestAddServers(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkNext(b *testing.B) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.13"}),
+	}
+	r, _ := New(servers...)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.NextServer()
+	}
+}
