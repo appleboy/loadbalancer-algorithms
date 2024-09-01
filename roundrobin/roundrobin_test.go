@@ -1,155 +1,59 @@
 package roundrobin
 
-// import (
-// 	"fmt"
-// 	"net/url"
-// 	"testing"
-// )
+import (
+	"net/url"
+	"testing"
 
-// var servers = []*url.URL{
-// 	{Host: "192.168.1.10"},
-// 	{Host: "192.168.1.11"},
-// 	{Host: "192.168.1.12"},
-// 	{Host: "192.168.1.13"},
-// }
+	"github.com/appleboy/loadbalancer-algorithms/proxy"
+)
 
-// var addServers = []*url.URL{
-// 	{Host: "192.168.2.10"},
-// 	{Host: "192.168.2.11"},
-// 	{Host: "192.168.2.12"},
-// 	{Host: "192.168.2.13"},
-// }
+func TestNextServer(t *testing.T) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+	}
 
-// func TestNext(t *testing.T) {
-// 	r, _ := New(servers...)
+	r, _ := New(servers...)
 
-// 	for _, s := range servers {
-// 		if r.NextServer().Host != s.Host {
-// 			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
-// 		}
-// 	}
-// }
+	for i := 0; i < len(servers); i++ {
+		nextServer := r.NextServer()
+		expectedServer := servers[i]
+		if nextServer != expectedServer {
+			t.Fatalf("Expected server %s, but got %s", expectedServer.GetName(), nextServer.GetName())
+		}
+	}
+}
 
-// func TestAdd(t *testing.T) {
-// 	r, _ := New(servers...)
-// 	_ = r.AddServers(addServers...)
-// 	newServers := append(servers, addServers...)
+func TestAddServers(t *testing.T) {
+	r, _ := New()
 
-// 	for _, s := range newServers {
-// 		if r.NextServer().Host != s.Host {
-// 			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
-// 		}
-// 	}
-// }
+	server1 := proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"})
+	server2 := proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"})
 
-// func TestRemove(t *testing.T) {
-// 	expectServers := servers[:len(servers)-1]
+	err := r.AddServers(server1, server2)
+	if err != nil {
+		t.Fatalf("Failed to add servers: %v", err)
+	}
 
-// 	r, _ := New(servers...)
-// 	_ = r.RemoveServer(&url.URL{
-// 		Host: "192.168.1.13",
-// 	})
+	servers := r.Servers()
+	if len(servers) != 2 {
+		t.Fatalf("Expected 2 servers, but got %d", len(servers))
+	}
 
-// 	for _, s := range expectServers {
-// 		if r.NextServer().Host != s.Host {
-// 			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
-// 		}
-// 	}
-// }
+	if servers[0] != server1 {
+		t.Fatalf("Expected server1, but got %v", servers[0])
+	}
 
-// func TestGetServers(t *testing.T) {
-// 	r, _ := New(servers...)
-// 	_ = r.RemoveServer(&url.URL{
-// 		Host: "192.168.1.13",
-// 	})
+	if servers[1] != server2 {
+		t.Fatalf("Expected server2, but got %v", servers[1])
+	}
 
-// 	for _, s := range r.Servers() {
-// 		if r.NextServer().Host != s.Host {
-// 			t.Fatalf("Expected %s, but got %s", s.Host, r.NextServer().Host)
-// 		}
-// 	}
-// }
-
-// func TestRemoveAll(t *testing.T) {
-// 	r, _ := New(servers...)
-// 	r.RemoveAll()
-
-// 	if len(r.Servers()) != 0 {
-// 		t.Fatalf("Expected zero, but got %d", len(r.Servers()))
-// 	}
-// }
-
-// func ExampleRoundRobin() {
-// 	r, _ := New(servers...)
-
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println()
-
-// 	_ = r.AddServers(addServers...)
-
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-// 	fmt.Println(r.NextServer().Host)
-
-// 	// Output:
-// 	// 192.168.1.10
-// 	// 192.168.1.11
-// 	// 192.168.1.12
-// 	// 192.168.1.13
-// 	//
-// 	// 192.168.2.10
-// 	// 192.168.2.11
-// 	// 192.168.2.12
-// 	// 192.168.2.13
-// 	// 192.168.1.10
-// }
-
-// func BenchmarkNext(b *testing.B) {
-// 	r, _ := New(servers...)
-// 	b.ReportAllocs()
-// 	b.ResetTimer()
-// 	for i := 0; i < b.N; i++ {
-// 		r.NextServer()
-// 	}
-// }
-
-// func TestRemoveServer(t *testing.T) {
-// 	sers := []*url.URL{
-// 		{Host: "192.168.1.1"},
-// 		{Host: "192.168.1.2"},
-// 	}
-// 	r, _ := New(sers...)
-// 	n := r.NextServer()
-// 	if n.Host != "192.168.1.1" {
-// 		t.Fatal("wrong host")
-// 	}
-// 	n = r.NextServer()
-// 	if n.Host != "192.168.1.2" {
-// 		t.Fatal("wrong host")
-// 	}
-// 	n = r.NextServer()
-// 	if n.Host != "192.168.1.1" {
-// 		t.Fatal("wrong host")
-// 	}
-// 	err := r.RemoveServer(&url.URL{Host: "192.168.1.1"})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	n = r.NextServer()
-// 	if n.Host != "192.168.1.2" {
-// 		t.Fatal("wrong host")
-// 	}
-// 	err = r.RemoveServer(&url.URL{Host: "192.168.1.2"})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	n = r.NextServer()
-// 	if n != nil {
-// 		t.Fatalf("want: nil, got: %v", n)
-// 	}
-// }
+	for i := 0; i < len(servers); i++ {
+		nextServer := r.NextServer()
+		expectedServer := servers[i]
+		if nextServer != expectedServer {
+			t.Fatalf("Expected server %s, but got %s", expectedServer.GetName(), nextServer.GetName())
+		}
+	}
+}

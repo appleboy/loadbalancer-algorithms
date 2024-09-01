@@ -110,10 +110,6 @@ func (r *roundrobin) RemoveAll() {
 
 // New creates a new instance of the round-robin load balancer with the specified servers.
 func New(servers ...*proxy.Proxy) (RoundRobin, error) {
-	if len(servers) == 0 {
-		return nil, ErrServersEmpty
-	}
-
 	rb := &roundrobin{
 		servers: servers,
 		count:   len(servers),
