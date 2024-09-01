@@ -1,5 +1,7 @@
 # loadbalancer-algorithms
 
+[![Run Tests](https://github.com/appleboy/loadbalancer-algorithms/actions/workflows/go.yml/badge.svg)](https://github.com/appleboy/loadbalancer-algorithms/actions/workflows/go.yml)
+
 A load balancing algorithm is a computational method that distributes workloads across multiple computing resources in a network, such as servers, to optimize resource utilization and improve performance. The goal of a load balancing algorithm is to ensure that no single resource is overburdened while others remain underutilized, which can lead to inefficient use of resources and reduced performance.
 
 Load balancing algorithms typically use a set of rules or metrics to determine which resource to assign a task to. For example, a simple round-robin algorithm might assign each task to the next available resource in a list, while a more sophisticated algorithm might take into account factors such as the current workload of each resource, the available memory and processing power of each resource, and the network latency between the resources and the requesting client.
