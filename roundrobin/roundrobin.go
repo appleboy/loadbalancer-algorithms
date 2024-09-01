@@ -2,9 +2,10 @@ package roundrobin
 
 import (
 	"errors"
-	"net/url"
 	"sync"
 	"sync/atomic"
+
+	"github.com/appleboy/loadbalancer-algorithms/proxy"
 )
 
 var (
@@ -12,69 +13,72 @@ var (
 	ErrServerNotFound = errors.New("server not found")
 )
 
-type server struct {
-	url *url.URL
-}
-
+// RoundRobin is an interface that defines the methods for a round-robin load balancer algorithm.
 type RoundRobin interface {
-	NextServer() *url.URL
-	AddServers(...*url.URL) error
-	RemoveServer(*url.URL) error
-	Servers() []*url.URL
+	// NextServer returns the next server in the rotation.
+	NextServer() *proxy.Proxy
+
+	// AddServers adds one or more servers to the load balancer.
+	AddServers(...*proxy.Proxy) error
+
+	// RemoveServers removes one or more servers from the load balancer.
+	RemoveServers(...string) error
+
+	// Servers returns a list of all servers in the load balancer.
+	Servers() []*proxy.Proxy
+
+	// RemoveAll removes all servers from the load balancer.
 	RemoveAll()
 }
 
 type roundrobin struct {
 	sync.Mutex
-	servers []*server
+	servers []*proxy.Proxy
 	next    uint32
 	count   int
 }
 
-func (r *roundrobin) NextServer() *url.URL {
+func (r *roundrobin) NextServer() *proxy.Proxy {
 	if r.count == 0 {
 		return nil
 	}
 	index := atomic.AddUint32(&r.next, 1)
 	server := r.servers[int(index-1)%r.count]
-	return server.url
+	return server
 }
 
-func (r *roundrobin) AddServers(urls ...*url.URL) error {
-	if len(urls) == 0 {
+func (r *roundrobin) AddServers(servers ...*proxy.Proxy) error {
+	if len(servers) == 0 {
 		return ErrServersEmpty
 	}
 	r.Lock()
-	for _, url := range urls {
-		r.servers = append(r.servers, &server{url: url})
-	}
+	r.servers = append(r.servers, servers...)
 	r.count = len(r.servers)
 	r.Unlock()
 	return nil
 }
 
-func (r *roundrobin) RemoveServer(url *url.URL) error {
+func (r *roundrobin) RemoveServers(names ...string) error {
+	if len(names) == 0 {
+		return ErrServersEmpty
+	}
 	r.Lock()
-	defer r.Unlock()
-	for i, s := range r.servers {
-		if checkURL(url, s.url) {
+	for _, name := range names {
+		for i, server := range r.servers {
+			if server.GetName() != name {
+				continue
+			}
 			r.servers = append(r.servers[:i], r.servers[i+1:]...)
-			r.count--
-			return nil
+			r.count = len(r.servers)
+			break
 		}
 	}
-	return ErrServerNotFound
+	r.Unlock()
+	return nil
 }
 
-func (r *roundrobin) Servers() []*url.URL {
-	r.Lock()
-	urls := make([]*url.URL, len(r.servers))
-	for i, s := range r.servers {
-		urls[i] = s.url
-	}
-	r.Unlock()
-
-	return urls
+func (r *roundrobin) Servers() []*proxy.Proxy {
+	return r.servers
 }
 
 func (r *roundrobin) RemoveAll() {
@@ -83,24 +87,15 @@ func (r *roundrobin) RemoveAll() {
 	atomic.StoreUint32(&r.next, 0)
 }
 
-func New(urls ...*url.URL) (RoundRobin, error) {
-	if len(urls) == 0 {
+func New(servers ...*proxy.Proxy) (RoundRobin, error) {
+	if len(servers) == 0 {
 		return nil, ErrServersEmpty
 	}
 
 	rb := &roundrobin{
-		servers: []*server{},
-		count:   0,
+		servers: servers,
+		count:   len(servers),
 	}
-
-	for _, url := range urls {
-		rb.servers = append(rb.servers, &server{url: url})
-	}
-	rb.count = len(rb.servers)
 
 	return rb, nil
-}
-
-func checkURL(a, b *url.URL) bool {
-	return a.Path == b.Path && a.Host == b.Host && a.Scheme == b.Scheme
 }
