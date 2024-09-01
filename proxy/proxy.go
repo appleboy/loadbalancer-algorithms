@@ -17,6 +17,7 @@ var value int32 = -1
 // NewProxy creates a new instance of Proxy with the specified address.
 func NewProxy(name string, addr *url.URL) *Proxy {
 	return &Proxy{
+		name:  name,
 		proxy: httputil.NewSingleHostReverseProxy(addr),
 	}
 }

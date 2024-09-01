@@ -29,6 +29,9 @@ type RoundRobin interface {
 	RemoveAll()
 }
 
+// Ensure that roundrobin implements the RoundRobin interface.
+var _ RoundRobin = (*roundrobin)(nil)
+
 // roundrobin represents a round-robin load balancing algorithm.
 type roundrobin struct {
 	sync.Mutex

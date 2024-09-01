@@ -1,6 +1,7 @@
 package roundrobin
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -71,4 +72,47 @@ func BenchmarkNext(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.NextServer()
 	}
+}
+
+func ExampleRoundRobin() {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+	}
+	r, _ := New(servers...)
+
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println()
+
+	addServers := []*proxy.Proxy{
+		proxy.NewProxy("d1", &url.URL{Host: "192.168.2.10"}),
+		proxy.NewProxy("d2", &url.URL{Host: "192.168.2.11"}),
+		proxy.NewProxy("d3", &url.URL{Host: "192.168.2.12"}),
+	}
+
+	_ = r.AddServers(addServers...)
+
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+	fmt.Println(r.NextServer().GetName())
+
+	// Output:
+	// s1
+	// s2
+	// s3
+	// s1
+	//
+	// d2
+	// d3
+	// s1
+	// s2
+	// s3
+	// d1
 }
