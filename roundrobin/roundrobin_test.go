@@ -97,6 +97,30 @@ func TestServers(t *testing.T) {
 	}
 }
 
+func TestRemoveServers(t *testing.T) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+	}
+
+	r, _ := New(servers...)
+
+	err := r.RemoveServers("s1", "s3")
+	if err != nil {
+		t.Fatalf("Failed to remove servers: %v", err)
+	}
+
+	remainingServers := r.Servers()
+	if len(remainingServers) != 1 {
+		t.Fatalf("Expected 1 server after removal, but got %d", len(remainingServers))
+	}
+
+	if remainingServers[0].GetName() != "s2" {
+		t.Fatalf("Expected server s2, but got %v", remainingServers[0])
+	}
+}
+
 func BenchmarkNext(b *testing.B) {
 	servers := []*proxy.Proxy{
 		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),

@@ -85,6 +85,7 @@ func (r *roundrobin) RemoveServers(names ...string) error {
 		return ErrServersEmpty
 	}
 	r.Lock()
+	defer r.Unlock()
 	for _, name := range names {
 		for i, server := range r.servers {
 			if server.GetName() != name {
@@ -95,7 +96,6 @@ func (r *roundrobin) RemoveServers(names ...string) error {
 			break
 		}
 	}
-	r.Unlock()
 	return nil
 }
 
