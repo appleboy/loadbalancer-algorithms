@@ -101,13 +101,17 @@ func (r *roundrobin) RemoveServers(names ...string) error {
 
 // Servers returns a list of all servers in the roundrobin load balancer.
 func (r *roundrobin) Servers() []*proxy.Proxy {
+	r.Lock()
+	defer r.Unlock()
 	return r.servers
 }
 
 // RemoveAll removes all servers from the roundrobin load balancer.
 func (r *roundrobin) RemoveAll() {
+	r.Lock()
 	r.servers = r.servers[:0]
 	r.count = 0
+	r.Unlock()
 	atomic.StoreUint32(&r.next, 0)
 }
 
