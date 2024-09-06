@@ -59,6 +59,22 @@ func TestAddServers(t *testing.T) {
 	}
 }
 
+func TestRemoveAll(t *testing.T) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+	}
+
+	r, _ := New(servers...)
+
+	r.RemoveAll()
+
+	if len(r.Servers()) != 0 {
+		t.Fatalf("Expected 0 servers after RemoveAll, but got %d", len(r.Servers()))
+	}
+}
+
 func BenchmarkNext(b *testing.B) {
 	servers := []*proxy.Proxy{
 		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
