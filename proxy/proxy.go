@@ -17,8 +17,9 @@ var value int32 = -1
 // NewProxy creates a new instance of Proxy with the specified address.
 func NewProxy(name string, addr *url.URL) *Proxy {
 	return &Proxy{
-		name:  name,
-		proxy: httputil.NewSingleHostReverseProxy(addr),
+		name:   name,
+		proxy:  httputil.NewSingleHostReverseProxy(addr),
+		health: NewProxyHealth(addr),
 	}
 }
 
@@ -27,6 +28,7 @@ type Proxy struct {
 	name    string
 	proxy   *httputil.ReverseProxy
 	loading uint32
+	health  *ProxyHealth
 }
 
 // ServeHTTP handles the incoming HTTP request and forwards it to the underlying proxy server.
