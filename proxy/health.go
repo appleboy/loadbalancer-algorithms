@@ -17,13 +17,17 @@ const (
 
 type Check func(addr *url.URL) bool
 
-func NewProxyHealth(origin *url.URL) *ProxyHealth {
+func NewProxyHealth(origin *url.URL, opts ...Opts) *ProxyHealth {
 	h := &ProxyHealth{
 		origin:       origin,
 		check:        defaultHttpCheck,
 		period:       defaultPeriod,
 		initialDelay: defaultInitialDelay,
 		cancel:       make(chan struct{}),
+	}
+
+	for _, opt := range opts {
+		opt(h)
 	}
 
 	h.run()
