@@ -68,12 +68,12 @@ func (h *ProxyHealth) run() {
 
 	go func() {
 		t := time.NewTicker(h.period)
+		defer t.Stop()
 		for {
 			select {
 			case <-t.C:
 				checkHealth()
 			case <-h.cancel:
-				t.Stop()
 				return
 			}
 		}
