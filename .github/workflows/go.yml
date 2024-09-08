@@ -67,6 +67,10 @@ jobs:
         run: |
           go test -v -covermode=atomic -coverprofile=coverage.out ./...
 
+      - name: Run Benchmarksq
+        run: |
+          go test -bench=. ./..
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
