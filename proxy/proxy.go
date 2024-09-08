@@ -53,3 +53,8 @@ func (p *Proxy) GetLoading() uint32 {
 func (p *Proxy) GetName() string {
 	return p.name
 }
+
+// IsAvailable returns whether the proxy origin was successfully connected at the last check time.
+func (p *Proxy) IsAvailable() bool {
+	return p.health.IsAvailable()
+}
