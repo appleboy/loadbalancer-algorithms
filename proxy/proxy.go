@@ -21,7 +21,7 @@ func NewProxy(name string, addr *url.URL) *Proxy {
 	return &Proxy{
 		name:   name,
 		proxy:  httputil.NewSingleHostReverseProxy(addr),
-		health: health.NewProxyHealth(addr),
+		health: health.New(addr),
 	}
 }
 

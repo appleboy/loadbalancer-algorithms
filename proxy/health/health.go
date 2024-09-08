@@ -17,7 +17,7 @@ const (
 
 type Check func(addr *url.URL) bool
 
-func NewProxyHealth(origin *url.URL, opts ...Opts) *ProxyHealth {
+func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 	h := &ProxyHealth{
 		origin:       origin,
 		check:        defaultHttpCheck,

@@ -14,7 +14,7 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 		return addr.String() == "http://example.com"
 	}
 
-	h := NewProxyHealth(
+	h := New(
 		origin,
 		WithCheck(mockCheck),
 		WithPeriod(50*time.Millisecond),
