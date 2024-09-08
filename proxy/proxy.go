@@ -5,6 +5,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"sync/atomic"
+
+	"github.com/appleboy/loadbalancer-algorithms/proxy/health"
 )
 
 // Example of a configuration file:
@@ -19,7 +21,7 @@ func NewProxy(name string, addr *url.URL) *Proxy {
 	return &Proxy{
 		name:   name,
 		proxy:  httputil.NewSingleHostReverseProxy(addr),
-		health: NewProxyHealth(addr),
+		health: health.NewProxyHealth(addr),
 	}
 }
 
@@ -28,7 +30,7 @@ type Proxy struct {
 	name    string
 	proxy   *httputil.ReverseProxy
 	loading uint32
-	health  *ProxyHealth
+	health  *health.ProxyHealth
 }
 
 // ServeHTTP handles the incoming HTTP request and forwards it to the underlying proxy server.
