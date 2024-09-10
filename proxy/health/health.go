@@ -1,6 +1,7 @@
 package health
 
 import (
+	"net"
 	"net/http"
 	"net/url"
 	"sync"
@@ -97,7 +98,8 @@ func (h *ProxyHealth) IsAvailable() bool {
 	return h.isAvailable
 }
 
-// Opts is a functional option for configuring the health check.
+// defaultHTTPCheck is a default health check function that checks
+// if the HTTP connection to the address is successful.
 func defaultHTTPCheck(addr *url.URL) bool {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
@@ -114,4 +116,14 @@ func defaultHTTPCheck(addr *url.URL) bool {
 	defer resp.Body.Close()
 
 	return resp.StatusCode >= 200 && resp.StatusCode < 300
+}
+
+// defaultTCPCheck is a default health check function that checks
+// if the TCP connection to the address is successful.
+func defaultTCPCheck(addr *url.URL) bool {
+	conn, err := net.DialTimeout("tcp", addr.Host, 5*time.Second)
+	if err != nil {
+		return false
+	}
+	return conn.Close() == nil
 }
