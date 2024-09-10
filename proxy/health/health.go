@@ -20,7 +20,7 @@ type Check func(addr *url.URL) bool
 func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 	h := &ProxyHealth{
 		origin:       origin,
-		check:        defaultHttpCheck,
+		check:        defaultHTTPCheck,
 		period:       defaultPeriod,
 		initialDelay: defaultInitialDelay,
 		cancel:       make(chan struct{}),
@@ -97,7 +97,8 @@ func (h *ProxyHealth) IsAvailable() bool {
 	return h.isAvailable
 }
 
-func defaultHttpCheck(addr *url.URL) bool {
+// Opts is a functional option for configuring the health check.
+func defaultHTTPCheck(addr *url.URL) bool {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 		// never follow redirects
