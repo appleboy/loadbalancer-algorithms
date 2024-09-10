@@ -1,6 +1,8 @@
 package health
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -67,6 +69,59 @@ func TestDefaultTCPCheck(t *testing.T) {
 			got := defaultTCPCheck(addr)
 			if got != tt.want {
 				t.Errorf("defaultTCPCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDefaultHTTPCheck(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		want       bool
+		statusCode int
+	}{
+		{
+			name:       "Valid HTTP connection",
+			url:        "http://example.com",
+			want:       true,
+			statusCode: http.StatusOK,
+		},
+		{
+			name:       "Invalid HTTP connection",
+			url:        "http://invalid",
+			want:       false,
+			statusCode: http.StatusNotFound,
+		},
+		{
+			name:       "Redirect HTTP connection",
+			url:        "http://example.com/redirect",
+			want:       false,
+			statusCode: http.StatusMovedPermanently,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Mock HTTP server
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.statusCode)
+			}))
+			defer server.Close()
+
+			// Override URL for valid connections
+			if tt.want {
+				tt.url = server.URL
+			}
+
+			addr, err := url.Parse(tt.url)
+			if err != nil {
+				t.Fatalf("Failed to parse URL: %v", err)
+			}
+
+			got := defaultHTTPCheck(addr)
+			if got != tt.want {
+				t.Errorf("defaultHTTPCheck() = %v, want %v", got, tt.want)
 			}
 		})
 	}
