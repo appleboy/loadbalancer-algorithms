@@ -1,6 +1,7 @@
 package health
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/url"
@@ -126,4 +127,20 @@ func defaultTCPCheck(addr *url.URL) bool {
 		return false
 	}
 	return conn.Close() == nil
+}
+
+// defaultDNSCheck is a default health check function that checks
+// if the DNS resolution to the address is successful.
+func defaultDNSCheck(addr *url.URL) bool {
+	resolver := net.Resolver{}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	addrs, err := resolver.LookupHost(ctx, addr.Host)
+	if err != nil {
+		return false
+	}
+	if len(addrs) < 1 {
+		return false
+	}
+	return true
 }

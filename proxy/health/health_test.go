@@ -126,3 +126,36 @@ func TestDefaultHTTPCheck(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultDNSCheck(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want bool
+	}{
+		{
+			name: "Valid DNS resolution",
+			url:  "http://example.com",
+			want: true,
+		},
+		{
+			name: "Invalid DNS resolution",
+			url:  "http://invalid.invalid",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			addr, err := url.Parse(tt.url)
+			if err != nil {
+				t.Fatalf("Failed to parse URL: %v", err)
+			}
+
+			got := defaultDNSCheck(addr)
+			if got != tt.want {
+				t.Errorf("defaultDNSCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
