@@ -100,6 +100,10 @@ func (h *ProxyHealth) IsAvailable() bool {
 func defaultHttpCheck(addr *url.URL) bool {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
+		// never follow redirects
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 
 	resp, err := client.Get(addr.String())
