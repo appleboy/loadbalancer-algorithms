@@ -38,3 +38,36 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 		t.Fatalf("Expected IsAvailable to be false, but got true")
 	}
 }
+
+func TestDefaultTCPCheck(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want bool
+	}{
+		{
+			name: "Valid TCP connection",
+			url:  "tcp://example.com:80",
+			want: true,
+		},
+		{
+			name: "Invalid TCP connection",
+			url:  "tcp://invalid:80",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			addr, err := url.Parse(tt.url)
+			if err != nil {
+				t.Fatalf("Failed to parse URL: %v", err)
+			}
+
+			got := defaultTCPCheck(addr)
+			if got != tt.want {
+				t.Errorf("defaultTCPCheck() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
