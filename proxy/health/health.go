@@ -11,21 +11,21 @@ import (
 
 const (
 	// Default to 10 seconds. The minimum value is 1
-	defaultPeriod = 10 * time.Second
+	defaultPeriod = 10
 	// If the value of period is greater than initialDelay then the initialDelay will be ignored
 	// Defaults to 0 seconds. Minimum value is 0.
-	defaultInitialDelay = 0 * time.Second
+	defaultInitialDelay = 0
 )
 
 type Check func(addr *url.URL) bool
 
 func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 	h := &ProxyHealth{
-		origin:       origin,
-		check:        defaultHTTPCheck,
-		period:       defaultPeriod,
-		initialDelay: defaultInitialDelay,
-		cancel:       make(chan struct{}),
+		origin:              origin,
+		check:               defaultHTTPCheck,
+		periodSeconds:       defaultPeriod,
+		initialDelaySeconds: defaultInitialDelay,
+		cancel:              make(chan struct{}),
 	}
 
 	for _, opt := range opts {
@@ -39,12 +39,12 @@ func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 type ProxyHealth struct {
 	origin *url.URL
 
-	mu           sync.Mutex
-	check        Check
-	period       time.Duration
-	initialDelay time.Duration
-	cancel       chan struct{}
-	isAvailable  bool
+	mu                  sync.Mutex
+	check               Check
+	periodSeconds       int
+	initialDelaySeconds int
+	cancel              chan struct{}
+	isAvailable         bool
 }
 
 func (h *ProxyHealth) run() {
@@ -55,21 +55,21 @@ func (h *ProxyHealth) run() {
 		h.isAvailable = isAvailable
 	}
 
-	if h.initialDelay > h.period {
-		h.initialDelay = 0 * time.Second
+	if h.initialDelaySeconds > h.periodSeconds {
+		h.initialDelaySeconds = 0
 	}
 
 	// initial delay
-	if h.initialDelay > 0 {
+	if h.initialDelaySeconds > 0 {
 		select {
-		case <-time.After(h.initialDelay):
+		case <-time.After(time.Duration(h.initialDelaySeconds) * time.Second):
 		case <-h.cancel:
 			return
 		}
 	}
 
 	go func() {
-		t := time.NewTicker(h.period)
+		t := time.NewTicker(time.Duration(h.periodSeconds) * time.Second)
 		defer t.Stop()
 		for {
 			select {

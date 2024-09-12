@@ -19,12 +19,12 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 	h := New(
 		origin,
 		WithCheck(mockCheck),
-		WithPeriod(50*time.Millisecond),
+		WithPeriodSeconds(1),
 	)
 	defer h.stop()
 
 	// Wait for the initial check to complete
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1200 * time.Millisecond)
 
 	if !h.IsAvailable() {
 		t.Fatalf("Expected IsAvailable to be true, but got false")
@@ -34,7 +34,7 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 	h.origin, _ = url.Parse("http://invalid.com")
 
 	// Wait for the next check to complete
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1200 * time.Millisecond)
 
 	if h.IsAvailable() {
 		t.Fatalf("Expected IsAvailable to be false, but got true")
