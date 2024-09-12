@@ -15,6 +15,10 @@ const (
 	// If the value of period is greater than initialDelay then the initialDelay will be ignored
 	// Defaults to 0 seconds. Minimum value is 0.
 	defaultInitialDelay = 0
+	// Default success thresholds
+	defaultSuccessThreshold = 1
+	// Default failure threshold
+	defaultFailureThreshold = 3
 )
 
 type Check func(addr *url.URL) bool
@@ -25,6 +29,10 @@ func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 		check:               defaultHTTPCheck,
 		periodSeconds:       defaultPeriod,
 		initialDelaySeconds: defaultInitialDelay,
+		successThreshold:    defaultSuccessThreshold,
+		failureThreshold:    defaultFailureThreshold,
+		successCount:        0,
+		failureCount:        0,
 		cancel:              make(chan struct{}),
 	}
 
@@ -43,8 +51,38 @@ type ProxyHealth struct {
 	check               Check
 	periodSeconds       int
 	initialDelaySeconds int
+	successThreshold    int
+	failureThreshold    int
+	successCount        int
+	failureCount        int
 	cancel              chan struct{}
 	isAvailable         bool
+}
+
+// checkHealth checks the health of the proxy origin.
+func (h *ProxyHealth) checkHealth() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	isAvailable := h.check(h.origin)
+
+	if isAvailable {
+		h.successCount++
+		h.failureCount = 0
+	} else {
+		h.successCount = 0
+		h.failureCount++
+	}
+
+	if h.successCount >= h.successThreshold {
+		h.isAvailable = true
+		h.successCount = 0
+	}
+
+	if h.failureCount >= h.failureThreshold {
+		h.isAvailable = false
+		h.failureCount = 0
+	}
 }
 
 func (h *ProxyHealth) run() {
