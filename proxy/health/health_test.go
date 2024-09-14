@@ -166,6 +166,7 @@ func TestDefaultDNSCheck(t *testing.T) {
 }
 
 func TestProxyHealth_checkHealth(t *testing.T) {
+	healthError := errors.New("health check failed")
 	tests := []struct {
 		name             string
 		check            Check
@@ -174,6 +175,7 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		failureCount     int
 		wantAvailable    bool
 		isAvailable      bool
+		err              error
 	}{
 		{
 			name: "Health check passes",
@@ -184,16 +186,18 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 			failureThreshold: defaultFailureThreshold,
 			wantAvailable:    true,
 			failureCount:     0,
+			err:              nil,
 		},
 		{
 			name: "Health check fails",
 			check: func(addr *url.URL) error {
-				return errors.New("health check failed")
+				return healthError
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: 1,
 			wantAvailable:    false,
 			failureCount:     0,
+			err:              healthError,
 		},
 		{
 			name: "Health check passes after failures",
@@ -208,12 +212,13 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 			wantAvailable:    true,
 			isAvailable:      true,
 			failureCount:     1,
+			err:              nil,
 		},
 		{
 			name: "failing health check after reaching failure threshold",
 			check: func(addr *url.URL) error {
 				if addr.String() != "http://domain.com" {
-					return errors.New("health check failed")
+					return healthError
 				}
 				return nil
 			},
@@ -222,6 +227,7 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 			wantAvailable:    false,
 			isAvailable:      true,
 			failureCount:     2,
+			err:              healthError,
 		},
 	}
 
@@ -238,10 +244,14 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 				isAvailable:      tt.isAvailable,
 			}
 
-			h.checkHealth()
+			err := h.checkHealth()
 
 			if h.isAvailable != tt.wantAvailable {
 				t.Errorf("isAvailable = %v, want %v", h.isAvailable, tt.wantAvailable)
+			}
+
+			if err != nil && !errors.Is(err, tt.err) {
+				t.Errorf("errors = %v, want %v", err, tt.err)
 			}
 		})
 	}
