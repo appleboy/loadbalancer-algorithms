@@ -86,13 +86,6 @@ func (h *ProxyHealth) checkHealth() {
 }
 
 func (h *ProxyHealth) run() {
-	checkHealth := func() {
-		h.mu.Lock()
-		defer h.mu.Unlock()
-		isAvailable := h.check(h.origin)
-		h.isAvailable = isAvailable
-	}
-
 	if h.initialDelaySeconds > h.periodSeconds {
 		h.initialDelaySeconds = 0
 	}
@@ -112,7 +105,7 @@ func (h *ProxyHealth) run() {
 		for {
 			select {
 			case <-t.C:
-				checkHealth()
+				h.checkHealth()
 			case <-h.cancel:
 				return
 			}
