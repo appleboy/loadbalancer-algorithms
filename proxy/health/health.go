@@ -2,6 +2,7 @@ package health
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"net/url"
@@ -21,7 +22,7 @@ const (
 	defaultFailureThreshold = 3
 )
 
-type Check func(addr *url.URL) bool
+type Check func(addr *url.URL) error
 
 func New(origin *url.URL, opts ...Opts) *ProxyHealth {
 	h := &ProxyHealth{
@@ -57,16 +58,17 @@ type ProxyHealth struct {
 	failureCount        int
 	cancel              chan struct{}
 	isAvailable         bool
+	errors              error
 }
 
 // checkHealth checks the health of the proxy origin.
-func (h *ProxyHealth) checkHealth() {
+func (h *ProxyHealth) checkHealth() error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	isAvailable := h.check(h.origin)
+	err := h.check(h.origin)
 
-	if isAvailable {
+	if err == nil {
 		h.successCount++
 		h.failureCount = 0
 	} else {
@@ -83,13 +85,11 @@ func (h *ProxyHealth) checkHealth() {
 		h.isAvailable = false
 		h.failureCount = 0
 	}
+
+	return err
 }
 
 func (h *ProxyHealth) run() {
-	if h.initialDelaySeconds > h.periodSeconds {
-		h.initialDelaySeconds = 0
-	}
-
 	// initial delay
 	if h.initialDelaySeconds > 0 {
 		select {
@@ -107,7 +107,7 @@ func (h *ProxyHealth) run() {
 			default:
 			}
 
-			h.checkHealth()
+			h.errors = h.checkHealth()
 
 			select {
 			case <-time.After(time.Duration(h.periodSeconds) * time.Second):
@@ -137,7 +137,7 @@ func (h *ProxyHealth) IsAvailable() bool {
 
 // defaultHTTPCheck is a default health check function that checks
 // if the HTTP connection to the address is successful.
-func defaultHTTPCheck(addr *url.URL) bool {
+func defaultHTTPCheck(addr *url.URL) error {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 		// never follow redirects
@@ -148,11 +148,15 @@ func defaultHTTPCheck(addr *url.URL) bool {
 
 	resp, err := client.Get(addr.String())
 	if err != nil {
-		return false
+		return err
 	}
 	defer resp.Body.Close()
 
-	return resp.StatusCode >= 200 && resp.StatusCode < 300
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+
+	return errors.New("invalid status code")
 }
 
 // defaultTCPCheck is a default health check function that checks

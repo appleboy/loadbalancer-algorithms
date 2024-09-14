@@ -1,6 +1,7 @@
 package health
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,8 +13,11 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 	origin, _ := url.Parse("http://example.com")
 
 	// Mock check function
-	mockCheck := func(addr *url.URL) bool {
-		return addr.String() == "http://example.com"
+	mockCheck := func(addr *url.URL) error {
+		if addr.String() != "http://example.com" {
+			return errors.New("health check failed")
+		}
+		return nil
 	}
 
 	h := New(
@@ -23,13 +27,13 @@ func TestProxyHealth_IsAvailable(t *testing.T) {
 	)
 	defer h.stop()
 
-	// Wait for the initial check to complete
-	time.Sleep(1200 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	if !h.IsAvailable() {
 		t.Fatalf("Expected IsAvailable to be true, but got false")
 	}
-
+	// Update the failure threshold to 1
+	h.failureThreshold = 1
 	// Change the origin to make the check fail
 	h.origin, _ = url.Parse("http://invalid.com")
 
@@ -119,9 +123,10 @@ func TestDefaultHTTPCheck(t *testing.T) {
 				t.Fatalf("Failed to parse URL: %v", err)
 			}
 
-			got := defaultHTTPCheck(addr)
-			if got != tt.want {
-				t.Errorf("defaultHTTPCheck() = %v, want %v", got, tt.want)
+			err = defaultHTTPCheck(addr)
+			ok := err == nil
+			if ok != tt.want {
+				t.Errorf("defaultHTTPCheck() = %v, want %v", ok, tt.want)
 			}
 		})
 	}
@@ -172,8 +177,8 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 	}{
 		{
 			name: "Health check passes",
-			check: func(addr *url.URL) bool {
-				return true
+			check: func(addr *url.URL) error {
+				return nil
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: defaultFailureThreshold,
@@ -182,8 +187,8 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		},
 		{
 			name: "Health check fails",
-			check: func(addr *url.URL) bool {
-				return false
+			check: func(addr *url.URL) error {
+				return errors.New("health check failed")
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: 1,
@@ -192,8 +197,11 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		},
 		{
 			name: "Health check passes after failures",
-			check: func(addr *url.URL) bool {
-				return addr.String() != "http://example.com"
+			check: func(addr *url.URL) error {
+				if addr.String() != "http://example.com" {
+					return errors.New("health check failed")
+				}
+				return nil
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: defaultFailureThreshold,
@@ -203,8 +211,11 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		},
 		{
 			name: "failing health check after reaching failure threshold",
-			check: func(addr *url.URL) bool {
-				return addr.String() != "http://example.com"
+			check: func(addr *url.URL) error {
+				if addr.String() != "http://domain.com" {
+					return errors.New("health check failed")
+				}
+				return nil
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: defaultFailureThreshold,
@@ -230,7 +241,7 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 			h.checkHealth()
 
 			if h.isAvailable != tt.wantAvailable {
-				t.Errorf("checkHealth() = %v, want %v", h.isAvailable, tt.wantAvailable)
+				t.Errorf("isAvailable = %v, want %v", h.isAvailable, tt.wantAvailable)
 			}
 		})
 	}
