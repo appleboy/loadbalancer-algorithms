@@ -100,12 +100,17 @@ func (h *ProxyHealth) run() {
 	}
 
 	go func() {
-		t := time.NewTicker(time.Duration(h.periodSeconds) * time.Second)
-		defer t.Stop()
 		for {
 			select {
-			case <-t.C:
-				h.checkHealth()
+			case <-h.cancel:
+				return
+			default:
+			}
+
+			h.checkHealth()
+
+			select {
+			case <-time.After(time.Duration(h.periodSeconds) * time.Second):
 			case <-h.cancel:
 				return
 			}
