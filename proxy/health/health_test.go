@@ -193,10 +193,7 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		{
 			name: "Health check passes after failures",
 			check: func(addr *url.URL) bool {
-				if addr.String() == "http://example.com" {
-					return false
-				}
-				return true
+				return addr.String() != "http://example.com"
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: defaultFailureThreshold,
@@ -207,10 +204,7 @@ func TestProxyHealth_checkHealth(t *testing.T) {
 		{
 			name: "failing health check after reaching failure threshold",
 			check: func(addr *url.URL) bool {
-				if addr.String() == "http://example.com" {
-					return false
-				}
-				return true
+				return addr.String() != "http://example.com"
 			},
 			successThreshold: defaultSuccessThreshold,
 			failureThreshold: defaultFailureThreshold,
