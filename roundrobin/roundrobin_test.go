@@ -163,7 +163,9 @@ func BenchmarkAddServers(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		r.RemoveAll() // Reset for each iteration
-		r.AddServers(servers...)
+		if err := r.AddServers(servers...); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -182,8 +184,12 @@ func BenchmarkRemoveServers(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Reset servers for each iteration
 		r.RemoveAll()
-		r.AddServers(servers...)
-		r.RemoveServers("s1", "s3")
+		if err := r.AddServers(servers...); err != nil {
+			b.Fatal(err)
+		}
+		if err := r.RemoveServers("s1", "s3"); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
