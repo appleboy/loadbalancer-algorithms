@@ -136,6 +136,72 @@ func BenchmarkNext(b *testing.B) {
 	}
 }
 
+func BenchmarkNextParallel(b *testing.B) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+		proxy.NewProxy("s4", &url.URL{Host: "192.168.1.13"}),
+	}
+	r, _ := New(servers...)
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			r.NextServer()
+		}
+	})
+}
+
+func BenchmarkAddServers(b *testing.B) {
+	r, _ := New()
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.RemoveAll() // Reset for each iteration
+		r.AddServers(servers...)
+	}
+}
+
+func BenchmarkRemoveServers(b *testing.B) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+		proxy.NewProxy("s4", &url.URL{Host: "192.168.1.13"}),
+		proxy.NewProxy("s5", &url.URL{Host: "192.168.1.14"}),
+	}
+
+	r, _ := New(servers...)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Reset servers for each iteration
+		r.RemoveAll()
+		r.AddServers(servers...)
+		r.RemoveServers("s1", "s3")
+	}
+}
+
+func BenchmarkServers(b *testing.B) {
+	servers := []*proxy.Proxy{
+		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
+		proxy.NewProxy("s2", &url.URL{Host: "192.168.1.11"}),
+		proxy.NewProxy("s3", &url.URL{Host: "192.168.1.12"}),
+		proxy.NewProxy("s4", &url.URL{Host: "192.168.1.13"}),
+	}
+	r, _ := New(servers...)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Servers()
+	}
+}
+
 func ExampleRoundRobin() {
 	servers := []*proxy.Proxy{
 		proxy.NewProxy("s1", &url.URL{Host: "192.168.1.10"}),
