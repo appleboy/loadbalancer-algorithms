@@ -150,7 +150,13 @@ func defaultHTTPCheck(addr *url.URL) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			// Log the error or handle it appropriately
+			// For now, we'll silently ignore Close errors in defer
+			_ = err
+		}
+	}()
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
